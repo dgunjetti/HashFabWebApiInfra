@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mongo
+  name: mongo
+spec:
+  selector:
+    app: mongo
+  ports:
+    - port: 27017
+      targetPort: 27017
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: mongo
+  name: mongo
+spec:
+  serviceName: mongo
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - image: mongo
+        name: mongo
+        ports:
+        - containerPort: 27017
+        volumeMounts:
+          - name: mongo-storage
+            mountPath: /data/db
+      volumes:
+        - name: mongo-storage
+          emptyDir: {}
+---
+apiVersion: v1
+data:
+  secret.js: CmNvbnN0IERPTUFJTj0iaHR0cHM6Ly9oYXNoZmFiLmluIjsKCmlmKHByb2Nlc3MuZW52LlBST0RVQ1RJT04pIHsKCiAgbW9kdWxlLmV4cG9ydHMgPSB7CiAgJ2ZhY2Vib29rQXV0aCcgOiB7CiAgICAgICdjbGllbnRJRCcgICAgICA6ICcxNjU1NDE1NDY0NTExNDY4JywKICAgICAgJ2NsaWVudFNlY3JldCcgIDogJzhlMDBhNzE3Yjg1YzkyMjk1NDJjN2JlMDZiYjE1NDc2JywKICAgIH0sCiAgICAnZ29vZ2xlQXV0aCcgOiB7CiAgICAgICdjbGllbnRJRCcgICAgICAgICA6ICc5NTU1OTY3NjUyNzQtYzNnMnBmcDMycWs3NHQ5c29naGRmZDN1OTN0YWJjcG8uYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20nLAogICAgICAnY2xpZW50U2VjcmV0JyAgICAgOiAnQ1RocmRENkJhZVBzbVFKbmZ0SmtEM0pNJywKICAgIH0sCiAgICAncGF5dW1vbmV5JyA6IHsKICAgICAgJ2tleScgICA6ICdiYldwRVRYUycsCiAgICAgICdzYWx0JyAgOiAnaEs4dHBtdHd5RycsCiAgICAgICdzdXJsJyAgOiBgJHtET01BSU59L3Nob3BgLAogICAgICAnZnVybCcgIDogYCR7RE9NQUlOfS9zaG9wYAogICAgfSwKICAgICdTRUNSRVRfS0VZJyA6ICdnWGFsZTVta2poTDByY0E0SHZ0Q2dvdVRIMFZGSythekFHOG9WblZkJywKICAgICdET01BSU4nOiAnaHR0cHM6Ly9oYXNoZmFiLmluJwogIH07Cn0gZWxzZSB7CiAgbW9kdWxlLmV4cG9ydHMgPSB7CiAgJ2ZhY2Vib29rQXV0aCcgOiB7CiAgICAgICdjbGllbnRJRCcgICAgICA6ICczOTY0NDMwOTA3NjYwNDYnLAogICAgICAnY2xpZW50U2VjcmV0JyAgOiAnOGM0ZjljZWU2NTcyOWZmNTdlMTI5YjVjMDk0ZDQ4MDQnLAogICAgfSwKICAgICdnb29nbGVBdXRoJyA6IHsKICAgICAgJ2NsaWVudElEJyAgICAgICAgIDogJzk1NTU5Njc2NTI3NC1jM2cycGZwMzJxazc0dDlzb2doZGZkM3U5M3RhYmNwby5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbScsCiAgICAgICdjbGllbnRTZWNyZXQnICAgICA6ICdDVGhyZEQ2QmFlUHNtUUpuZnRKa0QzSk0nLAogICAgfSwKICAgICdwYXl1bW9uZXknIDogewogICAgICAna2V5JyAgIDogJ2JiV3BFVFhTJywKICAgICAgJ3NhbHQnICA6ICdoSzh0cG10d3lHJywKICAgICAgJ3N1cmwnICA6ICdodHRwczovL2xvY2FsaG9zdDozMDAwL3Nob3AnLAogICAgICAnZnVybCcgIDogJ2h0dHBzOi8vbG9jYWxob3N0OjMwMDAvc2hvcCcKICAgIH0sCiAgICAnU0VDUkVUX0tFWScgOiAnZ1hhbGU1bWtqaEwwcmNBNEh2dENnb3VUSDBWRksrYXpBRzhvVm5WZCcsCiAgICAnRE9NQUlOJzogJ2h0dHBzOi8vbG9jYWxob3N0OjMwMDAnCiAgfTsKfQoK
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: api-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: hashfab-api
+  name: hashfab-api
+spec:
+  type: LoadBalancer
+  selector:
+    app: hashfab-api
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: hashfab-api
+  name: hashfab-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hashfab-api
+  template:
+    metadata:
+      labels:
+        app: hashfab-api
+    spec:
+      containers:
+      - image: dgunjetti/hashfab-api
+        name: hashfab-api
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: api-secrets
+          mountPath: /etc/hashfab
+      volumes:
+      - name: api-secrets
+        secret:
+          secretName: api-secrets
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: setup-db
+spec:
+  template:
+    spec:
+      containers:
+      - name: setup-db
+        image: dgunjetti/setup-db
+        command: ["sh", "setup-db.sh"]
+      restartPolicy: Never
+  backoffLimit: 6
