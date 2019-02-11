@@ -119,7 +119,6 @@ END
     echo "kubectl get pods failed"
     exit
   fi
-
   
 : <<'END'
   kops create instancegroup bastions --role Bastion --subnet utility-$ZONE1 --name ${NAME}

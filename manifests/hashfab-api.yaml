@@ -55,7 +55,6 @@ metadata:
     app: hashfab-api
   name: hashfab-api
 spec:
-  type: LoadBalancer
   selector:
     app: hashfab-api
   ports:

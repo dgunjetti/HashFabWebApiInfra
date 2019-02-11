@@ -4,14 +4,14 @@ create() {
   hal config provider kubernetes enable
   CONTEXT=$(kubectl config current-context)
   echo $CONTEXT
-  ACCOUNT=hashfab
-  hal config provider kubernetes account add $ACCOUNT --provider-version v2 --context $CONTEXT
+
+  hal config provider kubernetes account add prod --provider-version v2 --context $CONTEXT
   hal config features edit --artifacts true
 
   ADDRESS=index.docker.io
   REPOSITORIES=dgunjetti/hashfab-api
   USERNAME=dgunjetti
-  PASSWORD_FILE=dp
+  PASSWORD_FILE=../dp
 
   hal config provider docker-registry account add dgunjetti \
     --address $ADDRESS \
@@ -21,16 +21,16 @@ create() {
 
   hal config provider docker-registry enable
 
-  export TOKEN_FILE=git-token
-  export ARTIFACT_ACCOUNT_NAME=dgunjetti
+  TOKEN_FILE=../git-token
+  ARTIFACT_ACCOUNT_NAME=dgunjetti
   hal config artifact github account add $ARTIFACT_ACCOUNT_NAME --username dgunjetti --token-file $TOKEN_FILE
   
-  hal config provider git enable
+  hal config artifact github enable
 
-  hal config deploy edit --type distributed --account-name $ACCOUNT  
+  hal config deploy edit --type distributed --account-name prod  
 
-  export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id)
-  export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
+  AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id)
+  AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
   echo $AWS_SECRET_ACCESS_KEY | hal config storage s3 edit --access-key-id $AWS_ACCESS_KEY_ID \
     --secret-access-key --region ap-south-1
 
@@ -46,7 +46,10 @@ create() {
 }
 
 delete() {
+  hal config artifact github account delete dgunjetti
+  hal config provider docker-registry account delete dgunjetti
   hal deploy clean
+  hal config provider kubernetes account delete prod 
 }
 
 if [ $# != 1 ]; then

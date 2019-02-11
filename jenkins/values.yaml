@@ -1,14 +1,33 @@
 Master:
+  Name: jenkins-master
+  Image: "jenkins/jenkins"
+  ImageTag: "lts"
+  ImagePullPolicy: "Always"
+  AdminUser: admin
+  AdminPassword: admin
   InstallPlugins:
     - kubernetes:1.13.0
     - workflow-job:2.31
     - workflow-aggregator:2.6
     - credentials-binding:1.17
     - git:3.9.1
+    - configuration-as-code:1.0
+    - configuration-as-code-support:1.0
   NumExecutors: 4
+  #ContainerEnv:
+  #  - name: CASC_JENKINS_CONFIG
+  #    value: /var/jenkins_home/casc_configs/..data/jenkins.yaml
+Persistence:
+  Enabled: true
+  volumes:
+  - name: casc-config
+    configMap:
+      name: jenkins-casc-config
+  mounts:
+  - name: casc-config
+    mountPath: /var/jenkins_home/casc_configs
+    readOnly: true
 Agent:
-  Enabled: false
-Persistance:
   Enabled: false
 NetworkPolicy:
   ApiVersion: networking.k8s.io/v1
