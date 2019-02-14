@@ -33,7 +33,7 @@ create() {
   
   create_kops_user
 
-  ssh-keygen -t rsa -f ~/.ssh/id_rsa -P "deepak"
+  ssh-keygen -t rsa -f ~/.ssh/id_rsa -P $2
   if [ $? != 0 ]; then
     echo "ssh public key generation failed"
     exit
@@ -249,12 +249,12 @@ delete_versions() {
   done
 }
 
-if [ $# != 2 ]; then
-  echo "usage: kops.sh <create/delete> <name>"
+if [ $# != 3 ]; then
+  echo "usage: kops.sh <create/delete> <name> <key>"
 fi
 
 if [ "$1" = "create" ]; then
-  create
+  create()
 elif [ "$1" = "delete" ]; then
   delete
 elif [ "$1" = "delete-bucket" ]; then
